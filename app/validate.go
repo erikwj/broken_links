@@ -15,18 +15,12 @@ func validateLine(line string, lineNum int, filePath string) error {
 	fileregex := regexp.MustCompile(`\[(.*)\]\((.*.md)\)`)
 	imgregex := regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`)
 
-	links := fileregex.FindAllStringSubmatch(line, -1)
-	urls := httpregex.FindAllStringSubmatch(line, -1)
-	images := imgregex.FindAllStringSubmatch(line, -1)
-
-	linksError := validateInternalLinks(links, filePath, lineNum)
-	imgError := validateImages(images, filePath, lineNum)
-	webError := validateWebUrls(urls, filePath, lineNum)
-
-	fmt.Println(linksError, imgError, webError)
+	linksError := validateInternalLinks(fileregex.FindAllStringSubmatch(line, -1), filePath, lineNum)
+	imgError := validateImages(imgregex.FindAllStringSubmatch(line, -1), filePath, lineNum)
+	webError := validateWebUrls(httpregex.FindAllStringSubmatch(line, -1), filePath, lineNum)
 
 	if linksError != 0 || imgError != 0 || webError != 0 {
-		return fmt.Errorf("error validating links in file %s at line %d", filePath, lineNum)
+		return fmt.Errorf("error validating line in file %s at line %d", filePath, lineNum)
 	}
 	return nil
 }
@@ -39,13 +33,13 @@ func validateInternalLinks(links [][]string, filePath string, lineNum int) int {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			err = fmt.Errorf("Error getting absolute path for file %s: %v\n", filePath, err)
+			err = fmt.Errorf("error getting absolute path for file %s: %v", filePath, err)
 			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("Broken file link in file %s at line %d: %s\n", filePath, lineNum, url)
+			err = fmt.Errorf("broken file link in file %s at line %d: %s", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 			return 1
 		}
@@ -62,13 +56,13 @@ func validateImages(images [][]string, filePath string, lineNum int) int {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			err = fmt.Errorf("Error getting absolute path for image file %s: %v\n", filePath, err)
+			err = fmt.Errorf("error getting absolute path for image file %s: %v\n", filePath, err)
 			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("Broken image file link in file %s at line %d: %s\n", filePath, lineNum, url)
+			err = fmt.Errorf("broken image file link in file %s at line %d: %s\n", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 			return 1
 		}
@@ -83,7 +77,7 @@ func validateWebUrls(urls [][]string, filePath string, lineNum int) int {
 		}
 		url := link[2]
 		if _, err := http.Get(url); err != nil {
-			err = fmt.Errorf("Broken web link in file %s at line %d: %s\n", filePath, lineNum, url)
+			err = fmt.Errorf("broken web link in file %s at line %d: %s\n", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 
 			return 1
