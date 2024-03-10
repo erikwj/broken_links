@@ -9,18 +9,29 @@ import (
 	"regexp"
 )
 
-func validateLine(line string, lineNum int, filePath string) {
-
+func validateLine(line string, lineNum int, filePath string) error {
 	// Supported links
 	httpregex := regexp.MustCompile(`\[(.*)\]\((http.*)\)`)
 	fileregex := regexp.MustCompile(`\[(.*)\]\((.*.md)\)`)
-	imgregex := regexp.MustCompile(`!\[(.+)\]\((.*.[png|svg|gif])\)`)
+	imgregex := regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`)
 
 	links := fileregex.FindAllStringSubmatch(line, -1)
 	urls := httpregex.FindAllStringSubmatch(line, -1)
 	images := imgregex.FindAllStringSubmatch(line, -1)
 
-	// Validate internal links
+	linksError := validateInternalLinks(links, filePath, lineNum)
+	imgError := validateImages(images, filePath, lineNum)
+	webError := validateWebUrls(urls, filePath, lineNum)
+
+	fmt.Println(linksError, imgError, webError)
+
+	if linksError != 0 || imgError != 0 || webError != 0 {
+		return fmt.Errorf("error validating links in file %s at line %d", filePath, lineNum)
+	}
+	return nil
+}
+
+func validateInternalLinks(links [][]string, filePath string, lineNum int) int {
 	for _, link := range links {
 		if check_length(link) {
 			continue
@@ -28,16 +39,22 @@ func validateLine(line string, lineNum int, filePath string) {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			fmt.Printf("Error getting absolute path for file %s: %v\n", filePath, err)
+			err = fmt.Errorf("Error getting absolute path for file %s: %v\n", filePath, err)
+			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			fmt.Printf("Broken file link in file %s at line %d: %s\n", filePath, lineNum, url)
+			err = fmt.Errorf("Broken file link in file %s at line %d: %s\n", filePath, lineNum, url)
+			fmt.Println(err) // Handle the error appropriately
+			return 1
 		}
-	}
 
-	// Validate images
+	}
+	return 0
+}
+
+func validateImages(images [][]string, filePath string, lineNum int) int {
 	for _, link := range images {
 		if check_length(link) {
 			continue
@@ -45,28 +62,37 @@ func validateLine(line string, lineNum int, filePath string) {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			fmt.Printf("Error getting absolute path for image file %s: %v\n", filePath, err)
+			err = fmt.Errorf("Error getting absolute path for image file %s: %v\n", filePath, err)
+			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			fmt.Printf("Broken image file link in file %s at line %d: %s\n", filePath, lineNum, url)
+			err = fmt.Errorf("Broken image file link in file %s at line %d: %s\n", filePath, lineNum, url)
+			fmt.Println(err) // Handle the error appropriately
+			return 1
 		}
 	}
+	return 0
+}
 
-	// Validate web urls
+func validateWebUrls(urls [][]string, filePath string, lineNum int) int {
 	for _, link := range urls {
 		if check_length(link) {
 			continue
 		}
 		url := link[2]
 		if _, err := http.Get(url); err != nil {
-			fmt.Printf("Broken web link in file %s at line %d: %s\n", filePath, lineNum, url)
+			err = fmt.Errorf("Broken web link in file %s at line %d: %s\n", filePath, lineNum, url)
+			fmt.Println(err) // Handle the error appropriately
+
+			return 1
 		}
 	}
+	return 0
 }
 
-func validateLinks(filePath string) error {
+func ValidateLinks(filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err

@@ -18,7 +18,7 @@ func Run(dir string, debug bool) error {
 				fmt.Printf("Validating %s \n", path)
 			}
 
-			if err := validateLinks(path); err != nil {
+			if err := ValidateLinks(path); err != nil {
 				fmt.Printf("Error validating links in file %s: %v\n", path, err)
 			}
 		}
