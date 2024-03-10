@@ -1,0 +1,5 @@
+More details on terminology can be found in [glossary](glossary.md)  
+More details can be found on [google](https://google.com)  
+Looks good to me  ![cool button](img/btn.png)  
+Looks good to me  ![cool button](img/btn.gif)  
+Looks good to me  ![cool button](img/btn.svg)  
