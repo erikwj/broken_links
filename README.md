@@ -9,5 +9,5 @@ How to run this
  or with arguments
 
  ```bash
- go run broken_links.go -dir ./testfiles
+ go run broken_links.go -dir ./testfiles -debug true
  ```
