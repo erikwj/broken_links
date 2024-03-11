@@ -1,13 +1,15 @@
-# broken_links
+# brokenlinks
 
-How to run this
+Small application to validate docs written in markdown for broken links to other pages, images or web urls. Still figuring out how to write proper Go. 
+
+How to build this
 
 ```bash
- go run broken_links.go
+ go build -o bin/brokenlinks
  ```
 
- or with arguments
+ How to run this
 
  ```bash
- go run broken_links.go -dir ./testfiles -debug true
+ ./bin/brokenlinks -dir ./testfiles -debug true
  ```
