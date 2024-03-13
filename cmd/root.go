@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 @erikwj
 */
 package cmd
 
@@ -14,14 +14,14 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "brokenlinks",
 	Short: "A cli to validate a markdown tree for broken links",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Long: `A cli to validate a markdown tree for broken links
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	Currently support for:
+	- image links in png, svg, or gif format
+	- web links
+	- file links in same directory
+	`,
+	// Execution
 	Run: func(cmd *cobra.Command, args []string) {
 		directory := dir
 		f := func(path string, info os.FileInfo, err error) error {
@@ -63,13 +63,8 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&dir, "dir", "", "directory to be checked")
-	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "expose detailed info on execution")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&dir, "dir", "", "Required: directory to be checked")
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Optional: print file names that are being checked; default: false")
+
 }
