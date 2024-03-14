@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/erikwj/brokenlinks/internal"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ var rootCmd = &cobra.Command{
 
 	Currently support for:
 	- image links in png, svg, or gif format
-	- web links
+	- web links [manually for now]
 	- file links in same directory
 	`,
 	// Execution
@@ -30,11 +31,11 @@ var rootCmd = &cobra.Command{
 			}
 			if filepath.Ext(path) == ".md" {
 				if debug {
-					fmt.Printf("Validating %s \n", path)
+					fmt.Fprintf(cmd.OutOrStdout(), "# Validating %s \n", path)
 				}
 
-				if err := ValidateLinks(path); err != nil {
-					fmt.Printf("Error validating links in file %s: %v\n", path, err)
+				if err := internal.ValidateLinks(path); err != nil {
+					fmt.Printf("# Error validating links in file %s: %v\n", path, err)
 				}
 			}
 			return nil
@@ -42,7 +43,7 @@ var rootCmd = &cobra.Command{
 		err := filepath.Walk(directory, f)
 
 		if err != nil {
-			fmt.Printf("Error walking the path %s: %v\n", directory, err)
+			fmt.Printf("# Error walking the path %s: %v\n", directory, err)
 			os.Exit(1)
 		}
 	},
