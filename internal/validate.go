@@ -10,10 +10,6 @@ import (
 	"regexp"
 )
 
-type internallinks [][]string
-type imagelinks [][]string
-type weblinks [][]string
-
 type DocRegex struct {
 	web   *regexp.Regexp
 	file  *regexp.Regexp
@@ -36,7 +32,7 @@ func ValidateLine(line string, lineNum int, filePath string, regexs DocRegex) er
 	return nil
 }
 
-func validateInternalLinks(links internallinks, filePath string, lineNum int) int {
+func validateInternalLinks(links [][]string, filePath string, lineNum int) int {
 	for _, link := range links {
 		if check_length(link) {
 			continue
@@ -59,7 +55,7 @@ func validateInternalLinks(links internallinks, filePath string, lineNum int) in
 	return 0
 }
 
-func validateImages(images imagelinks, filePath string, lineNum int) int {
+func validateImages(images [][]string, filePath string, lineNum int) int {
 	for _, link := range images {
 		if check_length(link) {
 			continue
@@ -81,7 +77,7 @@ func validateImages(images imagelinks, filePath string, lineNum int) int {
 	return 0
 }
 
-func validateWebUrls(urls weblinks, filePath string, lineNum int) int {
+func validateWebUrls(urls [][]string, filePath string, lineNum int) int {
 	for _, link := range urls {
 		if check_length(link) {
 			continue
