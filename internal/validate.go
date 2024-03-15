@@ -31,7 +31,7 @@ func ValidateLine(line string, lineNum int, filePath string, regexs DocRegex) er
 	webError := validateWebUrls(regexs.web.FindAllStringSubmatch(line, -1), filePath, lineNum)
 
 	if linksError != 0 || imgError != 0 || webError != 0 {
-		return fmt.Errorf("# error validating line in file %s at line %d", filePath, lineNum)
+		return fmt.Errorf("\u001b[31m# error validating line in file %s:%d\u001b[0m", filePath, lineNum)
 	}
 	return nil
 }
@@ -44,13 +44,13 @@ func validateInternalLinks(links internallinks, filePath string, lineNum int) in
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			err = fmt.Errorf("# error getting absolute path for file %s: %v", filePath, err)
+			err = fmt.Errorf("\u001b[31m# error getting absolute path for file %s:%v\u001b[0m", filePath, err)
 			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("# broken file link in file %s:%d issue: %s", filePath, lineNum, url)
+			err = fmt.Errorf("\u001b[31m# broken file link in file %s:%d issue: %s\u001b[0m", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 			return 1
 		}
@@ -67,13 +67,13 @@ func validateImages(images imagelinks, filePath string, lineNum int) int {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			err = fmt.Errorf("# error getting absolute path for image file %s: %v", filePath, err)
+			err = fmt.Errorf("\u001b[31m# error getting absolute path for image file %s:%v\u001b[0m", filePath, err)
 			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("# broken image file link in file %s:%d issue: %s", filePath, lineNum, url)
+			err = fmt.Errorf("\u001b[31m# broken image file link in file %s:%d issue: %s\u001b[0m ", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 			return 1
 		}
@@ -127,9 +127,10 @@ func ExtDocRegex(extension string) DocRegex {
 	switch extension {
 	case ".rst":
 		return DocRegex{
-			file:  regexp.MustCompile(`a`),
-			web:   regexp.MustCompile("`(.*) <(https?://[-%()_.!~*'#;/?:@&=+$,A-Za-z0-9]+)>`"),
-			image: regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`),
+			// file:  regexp.MustCompile("(:ref:)`([^`]*)`"), // doesn't work due to some macro stuff or so
+			file:  regexp.MustCompile(""),
+			web:   regexp.MustCompile("`(.*) <(https?://[-%()_.!~*'#;/?:@&=+$,A-Za-z0-9]+)>`_"),
+			image: regexp.MustCompile(`(::image )(.*.[png|svg|gif])`),
 		}
 	default:
 		return DocRegex{
