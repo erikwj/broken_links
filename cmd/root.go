@@ -25,16 +25,17 @@ var rootCmd = &cobra.Command{
 	// Execution
 	Run: func(cmd *cobra.Command, args []string) {
 		directory := dir
+		extension := ext
 		f := func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			if filepath.Ext(path) == ".md" {
+			if filepath.Ext(path) == extension {
 				if debug {
 					fmt.Fprintf(cmd.OutOrStdout(), "# Validating %s \n", path)
 				}
 
-				if err := internal.ValidateLinks(path); err != nil {
+				if err := internal.ValidateLinks(path, extension); err != nil {
 					fmt.Printf("# Error validating links in file %s: %v\n", path, err)
 				}
 			}
@@ -51,6 +52,7 @@ var rootCmd = &cobra.Command{
 
 var (
 	dir   string
+	ext   string
 	debug bool
 )
 
@@ -65,6 +67,7 @@ func Execute() {
 
 func init() {
 
+	rootCmd.PersistentFlags().StringVar(&ext, "ext", ".md", "File extension to be filtered on")
 	rootCmd.PersistentFlags().StringVar(&dir, "dir", "", "Required: directory to be checked")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Optional: print file names that are being checked; default: false")
 

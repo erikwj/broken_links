@@ -10,23 +10,33 @@ import (
 	"regexp"
 )
 
-func ValidateLine(line string, lineNum int, filePath string) error {
-	// Supported links can only have characters or numbers in the name of the link
-	httpregex := regexp.MustCompile(`\[([a-zA-Z0-9 ]+)\]\((https?://[-%()_.!~*';/?:@&=+$,A-Za-z0-9]+)\)`)
-	fileregex := regexp.MustCompile(`\[(.*)\]\((.*.md)\)`)
-	imgregex := regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`)
+type internallinks [][]string
+type imagelinks [][]string
+type weblinks [][]string
 
-	linksError := validateInternalLinks(fileregex.FindAllStringSubmatch(line, -1), filePath, lineNum)
-	imgError := validateImages(imgregex.FindAllStringSubmatch(line, -1), filePath, lineNum)
-	webError := validateWebUrls(httpregex.FindAllStringSubmatch(line, -1), filePath, lineNum)
+type DocRegex struct {
+	web   *regexp.Regexp
+	file  *regexp.Regexp
+	image *regexp.Regexp
+}
+
+func ValidateLine(line string, lineNum int, filePath string, regexs DocRegex) error {
+	// Supported links can only have characters or numbers in the name of the link
+	// httpregex := regexp.MustCompile(`\[([a-zA-Z0-9 ]+)\]\((https?://[-%()_.!~*';/?:@&=+$,A-Za-z0-9]+)\)`)
+	//fileregex := regexp.MustCompile(`\[(.*)\]\((.*.md)\)`)
+	// imgregex := regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`)
+
+	linksError := validateInternalLinks(regexs.file.FindAllStringSubmatch(line, -1), filePath, lineNum)
+	imgError := validateImages(regexs.image.FindAllStringSubmatch(line, -1), filePath, lineNum)
+	webError := validateWebUrls(regexs.web.FindAllStringSubmatch(line, -1), filePath, lineNum)
 
 	if linksError != 0 || imgError != 0 || webError != 0 {
-		return fmt.Errorf("error validating line in file %s at line %d", filePath, lineNum)
+		return fmt.Errorf("# error validating line in file %s at line %d", filePath, lineNum)
 	}
 	return nil
 }
 
-func validateInternalLinks(links [][]string, filePath string, lineNum int) int {
+func validateInternalLinks(links internallinks, filePath string, lineNum int) int {
 	for _, link := range links {
 		if check_length(link) {
 			continue
@@ -34,13 +44,13 @@ func validateInternalLinks(links [][]string, filePath string, lineNum int) int {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			err = fmt.Errorf("error getting absolute path for file %s: %v", filePath, err)
+			err = fmt.Errorf("# error getting absolute path for file %s: %v", filePath, err)
 			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("broken file link in file %s:%d issue: %s", filePath, lineNum, url)
+			err = fmt.Errorf("# broken file link in file %s:%d issue: %s", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 			return 1
 		}
@@ -49,7 +59,7 @@ func validateInternalLinks(links [][]string, filePath string, lineNum int) int {
 	return 0
 }
 
-func validateImages(images [][]string, filePath string, lineNum int) int {
+func validateImages(images imagelinks, filePath string, lineNum int) int {
 	for _, link := range images {
 		if check_length(link) {
 			continue
@@ -57,13 +67,13 @@ func validateImages(images [][]string, filePath string, lineNum int) int {
 		url := link[2]
 		absPath, err := filepath.Abs(filepath.Dir(filePath))
 		if err != nil {
-			err = fmt.Errorf("error getting absolute path for image file %s: %v", filePath, err)
+			err = fmt.Errorf("# error getting absolute path for image file %s: %v", filePath, err)
 			fmt.Println(err) // Handle the error appropriately
 			continue
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("broken image file link in file %s:%d issue: %s", filePath, lineNum, url)
+			err = fmt.Errorf("# broken image file link in file %s:%d issue: %s", filePath, lineNum, url)
 			fmt.Println(err) // Handle the error appropriately
 			return 1
 		}
@@ -71,13 +81,15 @@ func validateImages(images [][]string, filePath string, lineNum int) int {
 	return 0
 }
 
-func validateWebUrls(urls [][]string, filePath string, lineNum int) int {
+func validateWebUrls(urls weblinks, filePath string, lineNum int) int {
 	for _, link := range urls {
 		if check_length(link) {
 			continue
 		}
 		url := link[2]
 		fmt.Println("open", url, "# filepath:", filePath, "linenumber:", lineNum)
+		// Below code doesn't work since lots of pages don't return 404 on broken links
+		// Therefore only print the urls to be opened via commandline
 		// if resp, err := http.Get(url); err != nil || resp.StatusCode != 200 {
 		// 	err = fmt.Errorf("broken web link in file %s:%d issue: %s", filePath, lineNum, url)
 		// 	fmt.Print(err) // Handle the error appropriately
@@ -88,7 +100,7 @@ func validateWebUrls(urls [][]string, filePath string, lineNum int) int {
 	return 0
 }
 
-func ValidateLinks(filePath string) error {
+func ValidateLinks(filePath string, extension string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -101,13 +113,31 @@ func ValidateLinks(filePath string) error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNum++
-		ValidateLine(line, lineNum, filePath)
+		ValidateLine(line, lineNum, filePath, ExtDocRegex(extension))
 	}
 
 	if err := scanner.Err(); err != nil {
 		return err
 	}
 	return nil
+}
+
+// default on markdown
+func ExtDocRegex(extension string) DocRegex {
+	switch extension {
+	case ".rst":
+		return DocRegex{
+			file:  regexp.MustCompile(`a`),
+			web:   regexp.MustCompile("`(.*) <(https?://[-%()_.!~*'#;/?:@&=+$,A-Za-z0-9]+)>`"),
+			image: regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`),
+		}
+	default:
+		return DocRegex{
+			file:  regexp.MustCompile(`\[(.*)\]\((.*.md)\)`),
+			web:   regexp.MustCompile(`\[([a-zA-Z0-9 ]+)\]\((https?://[-%()_.!~*'#;/?:@&=+$,A-Za-z0-9]+)\)`),
+			image: regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`),
+		}
+	}
 }
 
 func check_length(arr []string) bool {
