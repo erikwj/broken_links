@@ -5,14 +5,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/erikwj/brokenlinks/internal"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+
+	"github.com/erikwj/brokenlinks/internal"
+	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "brokenlinks",
 	Short: "A cli to validate a markdown tree for broken links",
 	Long: `A cli to validate a markdown tree for broken links
@@ -21,20 +22,22 @@ var rootCmd = &cobra.Command{
 	- image links in png, svg, or gif format
 	- web links [manually for now]
 	- file links in same directory
+	- internal references to [other] markdown files headers
 	`,
 	// Execution
 	Run: func(cmd *cobra.Command, args []string) {
 		directory := dir
+		extension := ext
 		f := func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			if filepath.Ext(path) == ".md" {
+			if filepath.Ext(path) == extension {
 				if debug {
 					fmt.Fprintf(cmd.OutOrStdout(), "# Validating %s \n", path)
 				}
 
-				if err := internal.ValidateLinks(path); err != nil {
+				if err := internal.ValidateLinks(path, extension, only_errors); err != nil {
 					fmt.Printf("# Error validating links in file %s: %v\n", path, err)
 				}
 			}
@@ -50,14 +53,16 @@ var rootCmd = &cobra.Command{
 }
 
 var (
-	dir   string
-	debug bool
+	dir         string
+	ext         string
+	debug       bool
+	only_errors bool
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -65,7 +70,9 @@ func Execute() {
 
 func init() {
 
-	rootCmd.PersistentFlags().StringVar(&dir, "dir", "", "Required: directory to be checked")
-	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Optional: print file names that are being checked; default: false")
+	RootCmd.PersistentFlags().StringVar(&ext, "ext", ".md", "File extension to be filtered on")
+	RootCmd.PersistentFlags().StringVar(&dir, "dir", "", "Required: directory to be checked")
+	RootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Optional: print file names that are being checked; default: false")
+	RootCmd.PersistentFlags().BoolVar(&only_errors, "only_errors", false, "Optional: print only errors, no weblinks; default: false")
 
 }
