@@ -9,3 +9,10 @@ Looks good to me  ![cool button](img/btn.png)
 Looks good to me  ![cool button](img/btn.gif)  
 
 Looks good to me  ![cool button](img/btn.svg)  
+
+## find me
+([documentation section](#documentation)).
+
+Find the easter [egg](./subdir/bla.md#headers-2-with-extra-text)
+
+## Documentation
