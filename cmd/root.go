@@ -22,6 +22,7 @@ var RootCmd = &cobra.Command{
 	- image links in png, svg, or gif format
 	- web links [manually for now]
 	- file links in same directory
+	- internal references to [other] markdown files headers
 	`,
 	// Execution
 	Run: func(cmd *cobra.Command, args []string) {
