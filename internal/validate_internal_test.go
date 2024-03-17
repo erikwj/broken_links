@@ -167,31 +167,6 @@ func TestValidateInternalLinks(t *testing.T) {
 	}
 }
 
-func TestValidateInternalReferenceLinks(t *testing.T) {
-	// Prepare the test data
-	var buf bytes.Buffer
-	links := [][]string{
-		{"link1", "egg", "./subdir/bla.md#headers-2-with-extra-text"},
-		{"link1", "find me", "#find-me"},
-	}
-	filePath := "../testfiles/correct.md"
-	lineNum := 13
-
-	// Call the function being tested
-	result := validateInternalReferenceLinks(&buf, links, filePath, lineNum)
-
-	// Assert the expected result
-	if result != 0 {
-		t.Errorf("Expected validateInternalLinks to return 0, but got %d", result)
-	}
-
-	// Assert the output written to the writer
-	expectedOutput := ""
-	if buf.String() != expectedOutput {
-		t.Errorf("Expected output:\n%s\nBut got:\n%s", expectedOutput, buf.String())
-	}
-}
-
 func TestValidateInternalLinksBroken(t *testing.T) {
 	// Prepare the test data
 	var buf bytes.Buffer
@@ -224,6 +199,58 @@ func TestValidateInternalLinksBroken(t *testing.T) {
 	}
 }
 
+func TestValidateInternalReferenceLinks(t *testing.T) {
+	// Prepare the test data
+	var buf bytes.Buffer
+	links := [][]string{
+		{"link1", "egg", "./subdir/bla.md#headers-2-with-extra-text"},
+		{"link1", "find me", "#find-me"},
+	}
+	filePath := "../testfiles/correct.md"
+	lineNum := 13
+
+	// Call the function being tested
+	result := validateInternalReferenceLinks(&buf, links, filePath, lineNum)
+
+	// Assert the expected result
+	if result != 0 {
+		t.Errorf("Expected validateInternalLinks to return 0, but got %d", result)
+	}
+
+	// Assert the output written to the writer
+	expectedOutput := ""
+	if buf.String() != expectedOutput {
+		t.Errorf("Expected output:\n%s\nBut got:\n%s", expectedOutput, buf.String())
+	}
+}
+
+func TestValidateInternalReferenceLinksFailure(t *testing.T) {
+	// Prepare the test data
+	var buf bytes.Buffer
+	links := [][]string{
+		{"link1", "egg", "./subdir/bla.md#header-with-extra-text"},
+		{"link1", "find me", "#found-me"},
+	}
+	filePath := "../testfiles/correct.md"
+	lineNum := 13
+
+	// Call the function being tested
+	result := validateInternalReferenceLinks(&buf, links, filePath, lineNum)
+
+	// Assert the expected result
+	if result != 1 {
+		t.Errorf("Expected validateInternalLinks to return 1, but got %d", result)
+	}
+
+	// Assert the output written to the writer
+	log := fmt.Sprintf("\u001b[31m# broken header link in file %s:%d issue: %s\u001b[0m\n", filePath, lineNum, "./subdir/bla.md#header-with-extra-text")
+	expectedOutput := log
+
+	if buf.String() != expectedOutput {
+		t.Errorf("Expected output:\n%s\nBut got:\n%s", expectedOutput, buf.String())
+	}
+}
+
 func TestFindHeaders(t *testing.T) {
 	absPath := "../testfiles/subdir/bla.md"
 
@@ -244,6 +271,7 @@ func TestFindHeaders(t *testing.T) {
 		}
 	}
 }
+
 func TestInternalReference(t *testing.T) {
 	absPath := "../testfiles/subdir/bla.md"
 

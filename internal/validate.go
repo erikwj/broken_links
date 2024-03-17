@@ -21,9 +21,6 @@ type DocRegex struct {
 
 func ValidateLine(line string, lineNum int, filePath string, regexs DocRegex, onlyErrors bool) error {
 	// Supported links can only have characters or numbers in the name of the link
-	// httpregex := regexp.MustCompile(`\[([a-zA-Z0-9 ]+)\]\((https?://[-%()_.!~*';/?:@&=+$,A-Za-z0-9]+)\)`)
-	//fileregex := regexp.MustCompile(`\[(.*)\]\((.*.md)\)`)
-	// imgregex := regexp.MustCompile(`!\[(.*)\]\((.*.[png|svg|gif])\)`)
 
 	linksError := validateInternalLinks(os.Stdout, regexs.file.FindAllStringSubmatch(line, -1), filePath, lineNum)
 	imgError := validateImages(os.Stdout, regexs.image.FindAllStringSubmatch(line, -1), filePath, lineNum)
@@ -91,7 +88,7 @@ func validateInternalReferenceLinks(w io.Writer, links [][]string, filePath stri
 		targetPath = filepath.Join(absPath, fileName)
 
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("\u001b[31m# broken file link in file %s:%d issue: %s\u001b[0m", filePath, lineNum, url)
+			err = fmt.Errorf("\u001b[31m# broken reference link in file %s:%d issue: %s\u001b[0m", filePath, lineNum, url)
 			fmt.Fprintln(w, err) // Handle the error appropriately
 			return 1
 		}
