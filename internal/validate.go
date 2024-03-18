@@ -167,7 +167,7 @@ func validateImages(w io.Writer, images [][]string, filePath string, lineNum int
 		}
 		targetPath := filepath.Join(absPath, url)
 		if _, err := os.Stat(targetPath); err != nil {
-			err = fmt.Errorf("\u001b[31m# broken image file link in file %s:%d issue: %s\u001b[0m ", filePath, lineNum, url)
+			err = fmt.Errorf("\u001b[31m# broken image file link in file %s:%d issue: %s\u001b[0m", filePath, lineNum, url)
 			fmt.Fprintln(w, err) // Handle the error appropriately
 			return 1
 		}

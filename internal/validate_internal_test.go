@@ -167,7 +167,7 @@ func TestValidateInternalLinks(t *testing.T) {
 	}
 }
 
-func TestValidateInternalLinksBroken(t *testing.T) {
+func TestValidateInternalLinksFailure(t *testing.T) {
 	// Prepare the test data
 	var buf bytes.Buffer
 	url := "../testfiles/broken.md"
@@ -193,6 +193,59 @@ func TestValidateInternalLinksBroken(t *testing.T) {
 	// Assert the output written to the writer
 	// function stops after first broken link
 	expectedOutput := fmt.Sprintf("\u001b[31m# broken file link in file %s:%d issue: %s\u001b[0m\n", filePath, lineNum, url)
+
+	if buf.String() != expectedOutput {
+		t.Errorf("Expected output:\n%s\nBut got:\n%s", expectedOutput, buf.String())
+	}
+}
+
+func TestValidateImageLinks(t *testing.T) {
+	// Prepare the test data
+	var buf bytes.Buffer
+	links := [][]string{
+		{"link1", "img1", "../testfiles/img/btn.gif"},
+		{"link2", "img2", "../testfiles/img/btn.png"},
+		{"link3", "img3", "../testfiles/img/btn.svg"},
+	}
+	filePath := "../testfiles/correct.md"
+	lineNum := 10
+
+	// Call the function being tested
+	result := validateImages(&buf, links, filePath, lineNum)
+
+	// Assert the expected result 0 == succes; 1 == failure
+	if result != 0 {
+		t.Errorf("Expected validateInternalLinks to return 0, but got %d", result)
+	}
+
+	// Assert the output written to the writer
+	expectedOutput := ""
+	if buf.String() != expectedOutput {
+		t.Errorf("Expected output:\n%s\nBut got:\n%s", expectedOutput, buf.String())
+	}
+}
+
+func TestValidateImageLinksFailure(t *testing.T) {
+	// Prepare the test data
+	var buf bytes.Buffer
+	links := [][]string{
+		{"link1", "img1", "../testfiles/img/btn.gaf"},
+		{"link2", "img2", "../testfiles/img/btn.pnf"},
+		{"link3", "img3", "../testfiles/img/btn.svf"},
+	}
+	filePath := "../testfiles/correct.md"
+	lineNum := 10
+
+	// Call the function being tested
+	result := validateImages(&buf, links, filePath, lineNum)
+
+	// Assert the expected result 0 == succes; 1 == failure
+	if result != 1 {
+		t.Errorf("Expected validateInternalLinks to return 1, but got %d", result)
+	}
+
+	// Assert the output written to the writer
+	expectedOutput := fmt.Sprintf("\u001b[31m# broken image file link in file %s:%d issue: %s\u001b[0m\n", filePath, lineNum, links[0][2])
 
 	if buf.String() != expectedOutput {
 		t.Errorf("Expected output:\n%s\nBut got:\n%s", expectedOutput, buf.String())
@@ -243,7 +296,7 @@ func TestValidateInternalReferenceLinksFailure(t *testing.T) {
 	}
 
 	// Assert the output written to the writer
-	log := fmt.Sprintf("\u001b[31m# broken header link in file %s:%d issue: %s\u001b[0m\n", filePath, lineNum, "./subdir/bla.md#header-with-extra-text")
+	log := fmt.Sprintf("\u001b[31m# broken header link in file %s:%d issue: %s\u001b[0m\n", filePath, lineNum, links[0][2])
 	expectedOutput := log
 
 	if buf.String() != expectedOutput {
