@@ -1,0 +1,73 @@
+version: '3'
+
+tasks:
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v ./...
+  build:
+    desc: Build the project
+    cmds:
+      - go build -o ./bin/brokenlinks
+    env: 
+      GOOS: linux
+      GOARCH: amd64
+  build-windows:
+    desc: Build the project for Windows
+    cmds:
+      - go build -o ./bin/brokenlinks.exe
+    env: 
+      GOOS: windows
+      GOARCH: amd64
+  build-mac:
+    desc: Build the project for Mac
+    cmds:
+      - go build -o ./bin/brokenlinks-amd64
+    env: 
+      GOOS: darwin
+      GOARCH: amd64
+  build-mac-arm64:
+    desc: Build the project for Mac ARM64
+    cmds:
+      - go build -o ./bin/brokenlinks-arm64
+    env: 
+      GOOS: darwin
+      GOARCH: arm64
+  
+  install:
+    desc: Install the project
+    cmds:
+      - go install  
+  run:
+    desc: Run the project
+    cmds:
+      - go run main.go
+  clean: 
+    desc: Clean the project
+    cmds:
+      - go clean
+  lint:
+    desc: Lint the project
+    cmds:
+      - golangci-lint run
+  fmt:
+    desc: Format the project
+    cmds:
+      - go fmt ./...
+  vet: 
+    desc: Vet the project
+    cmds:
+      - go vet ./...  
+  mod-tidy:
+    desc: Tidy the project
+    cmds:
+      - go mod tidy
+  mod-vendor:
+    desc: Vendor the project
+    cmds:
+      - go mod vendor
+  mod-download:
+    desc: Download the project
+    cmds:
+      - go mod download
+  

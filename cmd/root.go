@@ -33,11 +33,11 @@ var RootCmd = &cobra.Command{
 				return err
 			}
 			if filepath.Ext(path) == extension {
-				if debug {
+				if verbose {
 					fmt.Fprintf(cmd.OutOrStdout(), "# Validating %s \n", path)
 				}
 
-				if err := internal.ValidateLinks(path, extension, only_errors); err != nil {
+				if err := internal.ValidateLinks(path, extension, errors_only); err != nil {
 					fmt.Printf("# Error validating links in file %s: %v\n", path, err)
 				}
 			}
@@ -55,8 +55,8 @@ var RootCmd = &cobra.Command{
 var (
 	dir         string
 	ext         string
-	debug       bool
-	only_errors bool
+	verbose     bool
+	errors_only bool
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -72,7 +72,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&ext, "ext", ".md", "File extension to be filtered on")
 	RootCmd.PersistentFlags().StringVar(&dir, "dir", "", "Required: directory to be checked")
-	RootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Optional: print file names that are being checked; default: false")
-	RootCmd.PersistentFlags().BoolVar(&only_errors, "only_errors", false, "Optional: print only errors, no weblinks; default: false")
+	RootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Optional: print file names that are being checked; default: false")
+	RootCmd.PersistentFlags().BoolVar(&errors_only, "errors_only", false, "Optional: print only errors, no weblinks; default: false")
 
 }

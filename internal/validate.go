@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	// "net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -181,6 +180,7 @@ func validateWebUrls(w io.Writer, urls [][]string, filePath string, lineNum int,
 			continue
 		}
 		url := link[2]
+
 		if !onlyErrors {
 			fmt.Fprintf(w, "open %s # filepath: %s linenumber: %d\n", url, filePath, lineNum)
 		}
@@ -195,30 +195,29 @@ func ValidateLinks(filePath string, extension string, onlyErrors bool) error {
 	}
 	defer file.Close()
 
+	var validateError error = nil
+
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNum++
-		ValidateLine(line, lineNum, filePath, ExtDocRegex(extension), onlyErrors)
+		validateError = ValidateLine(line, lineNum, filePath, ExtDocRegex(extension), onlyErrors)
 	}
 
 	if err := scanner.Err(); err != nil {
 		return err
 	}
-	return nil
+	return validateError
 }
-
-// mdFile := regexp.MustCompile(`^(?!http)[^)]*\.md$`)
 
 // default on markdown
 func ExtDocRegex(extension string) DocRegex {
 	switch extension {
 	case ".rst":
 		return DocRegex{
-			// file:  regexp.MustCompile("(:ref:)`([^`]*)`"), // doesn't work due to some macro stuff or so
-			file:     regexp.MustCompile(""),
+			file:     regexp.MustCompile(""), // not supported
 			web:      regexp.MustCompile("`(.*) <(https?://[-%()_.!~*'#;/?:@&=+$,A-Za-z0-9]+)>`_"),
 			image:    regexp.MustCompile(`(::image )(.*.[png|svg|gif])`),
 			internal: regexp.MustCompile(`\[([a-zA-Z0-9 ]+)\]\((#[^)]+|.*\.md#[^)]+)\)`),
