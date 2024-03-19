@@ -28,6 +28,15 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		directory := dir
 		extension := ext
+
+		// validate that directory is not empty
+		if directory == "" {
+			fmt.Println("Error: directory is required")
+			// print usage
+			cmd.Usage()
+			os.Exit(1)
+		}
+
 		f := func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err

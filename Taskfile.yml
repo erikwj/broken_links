@@ -1,10 +1,18 @@
 version: '3'
+vars:
+  GIT_SHA: $(git rev-parse HEAD)
 
 tasks:
   test:
     desc: Run tests
     cmds:
       - go test -v ./...
+  test-coverage:
+    desc: Run tests with coverage
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage
+
   build:
     desc: Build the project
     cmds:
@@ -19,7 +27,7 @@ tasks:
     env: 
       GOOS: windows
       GOARCH: amd64
-  build-mac:
+  build-mac-amd64:
     desc: Build the project for Mac
     cmds:
       - go build -o ./bin/brokenlinks-amd64
@@ -33,7 +41,15 @@ tasks:
     env: 
       GOOS: darwin
       GOARCH: arm64
-  
+
+  hash-build:
+    desc: Hash the build for verification
+    cmds:
+      - shasum -a 256 ./bin/brokenlinks > ./bin/brokenlinks.sha256
+      - shasum -a 256 ./bin/brokenlinks-amd64 > ./bin/brokenlinks-amd64.sha256
+      - shasum -a 256 ./bin/brokenlinks-arm64 > ./bin/brokenlinks-arm64.sha256
+      - shasum -a 256 ./bin/brokenlinks-exe > ./bin/brokenlinks-exe.sha256
+    silent: true
   install:
     desc: Install the project
     cmds:
@@ -46,6 +62,7 @@ tasks:
     desc: Clean the project
     cmds:
       - go clean
+      - rm -rf ./bin/*
   lint:
     desc: Lint the project
     cmds:
