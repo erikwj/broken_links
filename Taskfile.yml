@@ -1,0 +1,96 @@
+version: '3'
+vars:
+  GIT_SHA: $(git rev-parse HEAD)
+
+tasks:
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v ./...
+  test-coverage:
+    desc: Run tests with coverage
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage
+
+  build-linux:
+    desc: Build the project
+    cmds:
+      - go build -o ./bin/brokenlinks
+    env: 
+      GOOS: linux
+      GOARCH: amd64
+  build-windows:
+    desc: Build the project for Windows
+    cmds:
+      - go build -o ./bin/brokenlinks.exe
+    env: 
+      GOOS: windows
+      GOARCH: amd64
+  build-mac-amd64:
+    desc: Build the project for Mac
+    cmds:
+      - go build -o ./bin/brokenlinks-amd64
+    env: 
+      GOOS: darwin
+      GOARCH: amd64
+  build-mac-arm64:
+    desc: Build the project for Mac ARM64
+    cmds:
+      - go build -o ./bin/brokenlinks-arm64
+    env: 
+      GOOS: darwin
+      GOARCH: arm64
+  build-all:
+    desc: Build all the projects
+    cmds:
+      - go build -o ./bin/brokenlinks
+      - go build -o ./bin/brokenlinks-amd64
+      - go build -o ./bin/brokenlinks-arm64
+      - go build -o ./bin/brokenlinks-exe
+  hash-build:
+    desc: Hash the build for verification
+    cmds:
+      - shasum -a 256 ./bin/brokenlinks > ./bin/brokenlinks.sha256
+      - shasum -a 256 ./bin/brokenlinks-amd64 > ./bin/brokenlinks-amd64.sha256
+      - shasum -a 256 ./bin/brokenlinks-arm64 > ./bin/brokenlinks-arm64.sha256
+      - shasum -a 256 ./bin/brokenlinks-exe > ./bin/brokenlinks-exe.sha256
+    silent: true
+  install:
+    desc: Install the project
+    cmds:
+      - go install  
+  run:
+    desc: Run the project
+    cmds:
+      - go run main.go
+  clean: 
+    desc: Clean the project
+    cmds:
+      - go clean
+      - rm -rf ./bin/*
+  lint:
+    desc: Lint the project
+    cmds:
+      - golangci-lint run
+  fmt:
+    desc: Format the project
+    cmds:
+      - go fmt ./...
+  vet: 
+    desc: Vet the project
+    cmds:
+      - go vet ./...  
+  mod-tidy:
+    desc: Tidy the project
+    cmds:
+      - go mod tidy
+  mod-vendor:
+    desc: Vendor the project
+    cmds:
+      - go mod vendor
+  mod-download:
+    desc: Download the project
+    cmds:
+      - go mod download
+  

@@ -10,19 +10,67 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
+
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.22.0' ]
+
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+      # You can test your matrix by printing the current Go version
+      - name: Display Go version
+        run: go version
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          # Require: The version of golangci-lint to use.
+          # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
+          # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
+          version: latest
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+          # Optional: working directory, useful for monorepos
+          # working-directory: somedir
 
-    - name: Build
-      run: go build -v ./...
+          # Optional: golangci-lint command line arguments.
+          #
+          # Note: By default, the `.golangci.yml` file should be at the root of the repository.
+          # The location of the configuration file can be changed by using `--config=`
+          # args: --timeout=30m --config=/my/path/.golangci.yml --issues-exit-code=0 
 
-    - name: Test
-      run: go test -v ./...
+          # Optional: show only new issues if it's a pull request. The default value is `false`.
+          # only-new-issues: true
+
+          # Optional: if set to true, then all caching functionality will be completely disabled,
+          #           takes precedence over all other caching options.
+          # skip-cache: true
+
+          # Optional: if set to true, then the action won't cache or restore ~/go/pkg.
+          # skip-pkg-cache: true
+
+          # Optional: if set to true, then the action won't cache or restore ~/.cache/go-build.
+          # skip-build-cache: true
+
+          # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
+          # install-mode: "goinstall"
+      - name: Setup Task
+        run: |
+          curl -sL https://taskfile.dev/install.sh | sh
+          sudo mv ./bin/task /usr/local/bin
+
+      - name: Test, Lint, Vet, Clean
+        run: task test lint vet clean
+      - name: Build All
+        if: github.ref == 'refs/heads/main'
+        run: task build-all
+      - name: Store artifacts
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin
+          path: ./bin/**
