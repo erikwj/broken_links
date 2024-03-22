@@ -182,7 +182,7 @@ func validateWebUrls(w io.Writer, urls [][]string, filePath string, lineNum int,
 		url := link[2]
 
 		if !onlyErrors {
-			fmt.Fprintf(w, "open %s # filepath: %s linenumber: %d\n", url, filePath, lineNum)
+			fmt.Fprintf(w, "open %s # filepath: %s:%d\n", url, filePath, lineNum)
 		}
 	}
 	return 0
