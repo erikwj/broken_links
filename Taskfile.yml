@@ -13,7 +13,7 @@ tasks:
       - go test -coverprofile=coverage.out ./...
       - go tool cover -html=coverage
 
-  build:
+  build-linux:
     desc: Build the project
     cmds:
       - go build -o ./bin/brokenlinks
@@ -41,7 +41,13 @@ tasks:
     env: 
       GOOS: darwin
       GOARCH: arm64
-
+  build-all:
+    desc: Build all the projects
+    cmds:
+      - build-linux
+      - build-windows
+      - build-mac-amd64
+      - build-mac-arm64    
   hash-build:
     desc: Hash the build for verification
     cmds:
