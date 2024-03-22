@@ -64,7 +64,7 @@ jobs:
           sudo mv ./bin/task /usr/local/bin
 
       - name: Build
-        run: task test lint vet build-all
+        run: task test lint vet clean build-all
       - name: Store artifacts
         uses: actions/upload-artifact@v4
         with:
