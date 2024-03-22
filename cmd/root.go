@@ -33,7 +33,7 @@ var RootCmd = &cobra.Command{
 		if directory == "" {
 			fmt.Println("Error: directory is required")
 			// print usage
-			cmd.Usage()
+			_ = cmd.Usage()
 			os.Exit(1)
 		}
 
