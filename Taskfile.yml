@@ -44,10 +44,10 @@ tasks:
   build-all:
     desc: Build all the projects
     cmds:
-      - build-linux
-      - build-windows
-      - build-mac-amd64
-      - build-mac-arm64    
+      - go build -o ./bin/brokenlinks
+      - go build -o ./bin/brokenlinks-amd64
+      - go build -o ./bin/brokenlinks-arm64
+      - go build -o ./bin/brokenlinks-exe
   hash-build:
     desc: Hash the build for verification
     cmds:
