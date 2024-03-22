@@ -12,8 +12,13 @@ Use the `-h` flag for printing the documentation
 
 
 ```
+# Running on linux
 ./brokenlinks --dir /dir/with/markdowns
-./brokenlinks --dir /dir/bla | sh
+# Running on Mac intel
+./brokenlinks-amd64 --dir . | sh # to open directly in your local browser
+
+# Running on Mac M1+
+./brokenlinks-arm64 --dir . | sh # to open directly in your local browser
 ```
 
 ```
